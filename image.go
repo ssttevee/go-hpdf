@@ -33,6 +33,25 @@ func (pdf *PDF) LoadPngImageFromFile2(filename string) (*Image, error) {
 	}
 }
 
+func (pdf *PDF) LoadRaw1BitImageFromMem(mem []byte, width, height, stride uint32, blackIs1, topIsFirst bool) (*Image, error) {
+	ptr := (*C.HPDF_BYTE)((unsafe.Pointer(&mem[0])))
+	var blackIs1Int C.int = 0
+	if blackIs1 {
+		blackIs1Int = 1
+	}
+	var topIsFirstInt C.int = 0
+	if topIsFirst {
+		topIsFirstInt = 1
+	}
+	cimage := C.HPDF_Image_LoadRaw1BitImageFromMem(pdf.doc, ptr, C.HPDF_UINT(width), C.HPDF_UINT(height), C.HPDF_UINT(stride), blackIs1Int, topIsFirstInt)
+
+	if cimage != nil {
+		return newImage(cimage, pdf), nil
+	} else {
+		return nil, pdf.GetLastError()
+	}
+}
+
 func (pdf *PDF) LoadPngImageFromMem(mem []byte) (*Image, error) {
 	ptr := (*C.HPDF_BYTE)((unsafe.Pointer(&mem[0])))
 	cimage := C.HPDF_LoadPngImageFromMem(pdf.doc, ptr, C.HPDF_UINT(uint32(len(mem))))
